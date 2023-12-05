@@ -1,85 +1,96 @@
+const fs = require("fs/promises");
+
 class ProductManager {
-    #precioBaseGanancia = 0.15;
-    products = [];
-    
-        getProducts() {
-        return this.products;
+    constructor(fileName) {
+    this.fileName = fileName;
+    this.productos = [];
+
+    (async () => {
+        try {
+            if (await fs.access(fileName)) {
+            let productos = await fs.readFile(fileName, "utf-8");
+            this.productos = JSON.parse(productos);
+            }
+        } catch (error) {
+            console.error("Error al leer el archivo:", error);
         }
-    
-        agregarProducto(product) {
-        product.precio += product.precio * this.#precioBaseGanancia;
-    
-        if (this.products.length === 0) {
-            product.id = 1;
-        } else {
-            product.id = this.products[this.products.length - 1].id + 1;
-        }
-    
-        this.products.push(product);
-        }
-    
-        agregarElemento(idProduct, idElemento) {
-        const product = this.products.find((product) => product.id === idProduct);
-    
-        if (!product) {
-            return "No existe el producto";
-        }
-    
-        if (!product.stock.includes(idElemento)) {
-            product.stock.push(idElemento);
-        } else {
-            return "El elemento ya existe";
-        }
-        }
-    
-        ponerProductoEnMuestra(idProduct, nuevoLanzamiento, nuevaFecha) {
-        const product = this.products.find((product) => product.id === idProduct);
-    
-        if (!product) {
-            return "El producto no existe";
-        }
-    
-        const productoNuevo = {
-            ...product,
-            lugar: nuevoLanzamiento,
-            fecha: nuevaFecha,
-            id: this.products[this.products.length - 1].id + 1,
-            stock: [],
-        };
-    
-        this.products.push(productoNuevo);
+        })();
+    }
+
+    async saveFile(data) {
+        try {
+        await fs.writeFile(this.fileName, JSON.stringify(data, null, 2));
+        return true;
+        } catch (error) {
+        console.error("Error al escribir en el archivo:", error);
+        return false;
         }
     }
+
+    async addProduct(title, description, price, thumbnail, code, stock) {
+    // Validar que todos los campos sean obligatorios
+    if (!title || !description || !price || !thumbnail || !code || !stock) {
+        console.log("Todos los campos son obligatorios. Producto no agregado.");
+        return;
+    }
+
     
-    class Product {
-        constructor(
-        nombre,
-        descripcion,
-        precio,
-        imagen,
-        capacidad = 50,
-        fecha = new Date().toLocaleDateString()
-        ) {
-        this.nombre = nombre;
-        this.descripcion = descripcion;
-        this.precio = precio;
-        this.imagen = imagen;
-        this.capacidad = capacidad;
-        this.fecha = fecha;
-        this.stock = [];
+    if (this.productos.some(producto => producto.code === code)) {
+        console.log("Ya existe un producto con el mismo código. Producto no agregado.");
+        return;
+    }
+
+    const newProduct = {
+        id: this.generateId(),
+        title,
+        description,
+        price,
+        thumbnail,
+        code,
+        stock
+    };
+
+    this.productos.push(newProduct);
+
+    const respuesta = await this.saveFile(this.productos);
+
+    if (respuesta) {
+        console.log("Producto agregado correctamente");
+        } else {
+        console.log("Hubo un error al agregar el producto");
         }
     }
-    
-    // Pruebas
-    const prueba = new ProductManager();
-    
-    console.log("Agregando Producto funda 1 para Argentina, precio: 2000, 50 stock");
-    prueba.agregarProducto(new Product("Producto funda 1", "Argentina", 2000, "imagen.jpg", 50));
-    
-    console.log("Agregando al Producto con id 1 el stock del elemento con id 2");
-    prueba.agregarElemento(1, 2);
-    
-    console.log("Creando una copia vacía del producto 1 para España y para el 2023");
-    prueba.ponerProductoEnMuestra(1, "España", "23/12/2023");
-    
-    console.log(prueba.getProducts());
+
+    getProducts() {
+    return this.productos;
+  }
+
+    getProductById(id) {
+    const product = this.productos.find(producto => producto.id === id);
+
+    if (product) {
+        return product;
+        } else {
+        console.log("Producto no encontrado");
+        }
+    }
+
+    generateId() {
+    const maxId = this.productos.reduce((max, producto) => (producto.id > max ? producto.id : max), 0);
+    return maxId + 1;
+    }
+}
+
+// Pruebas
+const manager = new ProductManager("./Productos.json");
+
+manager.addProduct("Funda1", "falsadescripcion1", 10, "/thumbnails/funda1.jpg", "F1", 30);
+console.log(manager.getProducts());
+
+manager.addProduct("Funda2", "falsadescripcion2", 15, "/thumbnails/funda2.jpg", "F2", 20);
+console.log(manager.getProducts());
+
+const productById = manager.getProductById(1);
+console.log("Producto con ID 1:", productById);
+
+const productNotFound = manager.getProductById(3);
