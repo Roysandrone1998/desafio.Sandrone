@@ -28,7 +28,7 @@ class ProductManager {
     }
 
     async addProduct(title, description, price, thumbnail, code, stock) {
-    // Validar que todos los campos sean obligatorios
+    // Validacion
     if (!title || !description || !price || !thumbnail || !code || !stock) {
         console.log("Todos los campos son obligatorios. Producto no agregado.");
         return;
@@ -63,7 +63,7 @@ class ProductManager {
 
     getProducts() {
     return this.productos;
-  }
+}
 
     getProductById(id) {
     const product = this.productos.find(producto => producto.id === id);

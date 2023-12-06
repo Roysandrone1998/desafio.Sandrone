@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "title": "Funda1",
+    "description": "falsadescripcion1",
+    "price": 10,
+    "thumbnail": "/thumbnails/funda1.jpg",
+    "code": "F1",
+    "stock": 30
+  }
+]  {
+    "id": 2,
+    "title": "Funda2",
+    "description": "falsadescripcion2",
+    "price": 15,
+    "thumbnail": "/thumbnails/funda2.jpg",
+    "code": "F2",
+    "stock": 20
+  }
+]
